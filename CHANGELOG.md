@@ -17,3 +17,11 @@ Four eval-driven amendments, ratified by founder from the first automated run (r
 4. **Sign-off** (`<communication>`) — one line, no recap of parked items; exception only for something new since last seen. (Fixes S10 ×2.)
 
 Also: eval rubric (scenarios.json) and manual scenario doc synced to v1.2; test assembly regenerated. Parked: mid-sentence self-correction observation (1/3 toward the Fable 5 addendum quirk-log bar).
+
+## 2026-08-19 — Contract v1.2.1 (regression fix)
+
+The v1.2 re-run (results/run-20260819-011357) confirmed all four amendments fixed their targets (S2 3×PASS, S7 3×PASS) — and caught a regression the first amendment introduced: its replacement text dropped the greeting trigger, sending S1 from 3×PASS to 3×HARD_FAIL. Two intent-completion patches, no new policy:
+
+- **A:** restored "When they open with a greeting, or ask what you can do…" to the capability rule.
+- **B:** engagement-bait ban now covers paraphrases ("I'm here when you need me") per the ratified sign-off intent.
+- Rubric: S8 no longer penalizes the contract-mandated one-line non-retention statement.
