@@ -30,7 +30,7 @@ Later layers override earlier ones on **style only**. The protected core — the
 
 | Path | What it is |
 |---|---|
-| `contract.md` | **The Global Agent Contract v1.1** — the literal system prompt. Synthesized from the leaked system prompts of ~30 AI companies (Cursor, Devin, Amp, Poke, Notion, Comet, Cluely, Manus, v0, Lovable, Emergent…), adversarially reviewed by 7 independent lenses, then re-verified. Contains `{PLACEHOLDERS}` the platform resolves at deploy time. |
+| `contract.md` | **The Global Agent Contract v1.2** — the literal system prompt. Synthesized from the leaked system prompts of ~30 AI companies (Cursor, Devin, Amp, Poke, Notion, Comet, Cluely, Manus, v0, Lovable, Emergent…), adversarially reviewed by 7 independent lenses, then re-verified. Contains `{PLACEHOLDERS}` the platform resolves at deploy time. |
 | `addendums/*.md` | Seven per-model addendums (Claude Fable 5, Opus 5, Sonnet 5 · GPT-5.6 family, GPT-5.3 Codex · Gemini 3.7 Flash · Grok 4.6). Six-section format; every line cites vendor evidence. Fact-checked against live vendor pages 2026-08-18: 23/23 claims confirmed. |
 | `addendums/retired/` | Retired addendums are moved here with a retirement date — never deleted (institutional memory). |
 | `registry.json` | Machine-readable model registry: per model ID — addendum pointer, prompt block, API params, forbidden params, role, fallbacks. This is what makes per-model filling dynamic. **CI must enforce registry ↔ addendum equality** (see AGENTS.md). |
@@ -46,7 +46,7 @@ This repo is designed to mount as the `prompts/` directory of the platform codeb
 
 ## Current status
 
-- ✅ Contract v1.1 — reviewed and verified, ready for staging behind real traffic
+- ✅ Contract v1.2 — v1.1 + four eval-driven amendments (capability answers, false-accusation handling, pasted secrets, sign-off), verified by re-run
 - ✅ Addendums for 10 routable model IDs across 4 vendors (7 files)
 - ✅ Starter `registry.json` (fallback chains are provisional defaults — a platform decision to ratify)
 - ⬜ Workspace + user layer templates

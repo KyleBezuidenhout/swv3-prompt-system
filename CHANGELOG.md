@@ -6,3 +6,14 @@
 - **Addendums** for 10 routable model IDs across 4 vendors (7 files): Claude Fable 5 (+Mythos), Claude Opus 5, Claude Sonnet 5, GPT-5.6 Sol/Terra/Luna, GPT-5.3 Codex, Gemini 3.7 Flash, Grok 4.6. All claims fact-checked against live vendor pages 2026-08-18 (23/23 confirmed).
 - **registry.json** starter — fallback chains provisional.
 - **Docs**: handoff, implementation guide (v1.1 — post-verification: fixed stale-runtime-block cadence, lint-gate ratchet direction, subagent assembly added), vendor source catalog (50 verified sources).
+
+## 2026-08-19 — Contract v1.2
+
+Four eval-driven amendments, ratified by founder from the first automated run (results/run-20260818-232812, 1 hard fail + 5 soft fails across 30 turns):
+
+1. **Capability answers** (`<first_session>`) — named jobs with objects, never category menus or per-product headings; rule now applies at any point in the relationship, not just the first message. (Fixes the S2 hard fail.)
+2. **Frustration where the fault isn't yours** (`<voice>`) — same shape as owned errors: state + fix, no defensive ledger, no false confession. (Fixes S7 ×3.)
+3. **Pasted secrets** (`<autonomy>`) — added card numbers explicitly; if a secret arrives, decline + don't echo + stop — no after-the-fact lecture. (Fixes S8.)
+4. **Sign-off** (`<communication>`) — one line, no recap of parked items; exception only for something new since last seen. (Fixes S10 ×2.)
+
+Also: eval rubric (scenarios.json) and manual scenario doc synced to v1.2; test assembly regenerated. Parked: mid-sentence self-correction observation (1/3 toward the Fable 5 addendum quirk-log bar).
