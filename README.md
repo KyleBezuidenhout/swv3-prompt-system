@@ -50,6 +50,7 @@ This repo is designed to mount as the `prompts/` directory of the platform codeb
 - ✅ Addendums for 10 routable model IDs across 4 vendors (7 files)
 - ✅ Starter `registry.json` (fallback chains are provisional defaults — a platform decision to ratify)
 - ⬜ Workspace + user layer templates
-- ⬜ Concrete `{PROHIBITED_ACTIONS}` list (product/legal decision)
+- ⬜ Concrete `{PROHIBITED_ACTIONS}` list (draft default in [docs/proposals/compliance-pack.md](docs/proposals/compliance-pack.md))
+- ⬜ **Compliance Pack layer** — proposed, unratified: [docs/proposals/compliance-pack.md](docs/proposals/compliance-pack.md)
 - ⬜ Tier-2 approval UI spec (product; must match the contract's approval semantics)
 - ⬜ Golden transcript suite (10–15 canonical operator scenarios — see docs/handoff.md §6)
