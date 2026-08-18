@@ -1,0 +1,112 @@
+{
+  "_comment": "Machine-readable model registry. One entry per routable model ID. prompt_block / api_params / forbidden_params MUST match the addendum (CI-enforced, see AGENTS.md rule 2). Fallback chains are PROVISIONAL defaults pending platform ratification. Schema: docs/implementation-guide.md §2.",
+
+  "claude-fable-5": {
+    "addendum": "addendums/claude-fable-5.md",
+    "prompt_block": "<model_notes>\nYour context window is large and the platform manages long-run compaction.\nNever cut work short or summarize prematurely to conserve context.\nLong turns are expected: minutes-to-hours of continuous work is normal here.\n</model_notes>",
+    "api_params": { "output_config": { "effort": "high" } },
+    "forbidden_params": ["temperature", "top_p", "top_k"],
+    "system_role": "system",
+    "refusal_handling": { "on": "stop_reason=refusal", "fallback": "claude-opus-5" },
+    "max_tokens_factor": 1.35,
+    "status": "active",
+    "fallback": "claude-opus-5"
+  },
+
+  "claude-mythos-5": {
+    "addendum": "addendums/claude-fable-5.md",
+    "prompt_block": "<model_notes>\nYour context window is large and the platform manages long-run compaction.\nNever cut work short or summarize prematurely to conserve context.\nLong turns are expected: minutes-to-hours of continuous work is normal here.\n</model_notes>",
+    "api_params": { "output_config": { "effort": "high" } },
+    "forbidden_params": ["temperature", "top_p", "top_k"],
+    "system_role": "system",
+    "max_tokens_factor": 1.35,
+    "status": "active",
+    "fallback": "claude-fable-5"
+  },
+
+  "claude-opus-5": {
+    "addendum": "addendums/claude-opus-5.md",
+    "prompt_block": "<model_notes>\nYour default is longer replies and running narration, including narrating\nself-corrections and verifications. The contract's sizing and quiet-work rules\nwin: state results, not the story of checking them.\nYour tendency is to expand scope beyond the request. The contract's scope\nrestraint is the boundary — adjacent work is offered in one line, never done.\n</model_notes>",
+    "api_params": { "output_config": { "effort": "high" } },
+    "forbidden_params": ["temperature", "top_p", "top_k"],
+    "system_role": "system",
+    "max_tokens_factor": 1.35,
+    "status": "active",
+    "fallback": "claude-fable-5"
+  },
+
+  "claude-sonnet-5": {
+    "addendum": "addendums/claude-sonnet-5.md",
+    "prompt_block": "<model_notes>\nFor customer-facing visual or frontend deliverables: do not fall back on your\ndefault design conventions — derive look and feel from the workspace's brand\nand the operator's materials, and say what you derived it from.\n</model_notes>",
+    "api_params": { "output_config": { "effort": "medium" } },
+    "forbidden_params": ["temperature", "top_p", "top_k"],
+    "system_role": "system",
+    "max_tokens_factor": 1.3,
+    "status": "active",
+    "fallback": "claude-opus-5"
+  },
+
+  "gpt-5.6-sol": {
+    "addendum": "addendums/gpt-5.6.md",
+    "prompt_block": "<model_notes>\nFormat replies in Markdown wherever the surface renders it.\nBoundary check: your documented tendency is to go beyond the user's intent —\ntaking or attempting actions that were not asked for. The contract's tier\ngates and scope restraint are hard boundaries, not suggestions: when unsure\nwhether something was requested, stage it and ask rather than act.\n</model_notes>",
+    "api_params": { "reasoning_effort": "medium", "text": { "verbosity": "medium" } },
+    "forbidden_params": [],
+    "system_role": "developer",
+    "status": "active",
+    "fallback": "claude-fable-5"
+  },
+
+  "gpt-5.6-terra": {
+    "addendum": "addendums/gpt-5.6.md",
+    "prompt_block": "<model_notes>\nFormat replies in Markdown wherever the surface renders it.\nBoundary check: your documented tendency is to go beyond the user's intent —\ntaking or attempting actions that were not asked for. The contract's tier\ngates and scope restraint are hard boundaries, not suggestions: when unsure\nwhether something was requested, stage it and ask rather than act.\n</model_notes>",
+    "api_params": { "reasoning_effort": "medium", "text": { "verbosity": "medium" } },
+    "forbidden_params": [],
+    "system_role": "developer",
+    "status": "active",
+    "fallback": "gpt-5.6-sol"
+  },
+
+  "gpt-5.6-luna": {
+    "addendum": "addendums/gpt-5.6.md",
+    "prompt_block": "<model_notes>\nFormat replies in Markdown wherever the surface renders it.\nBoundary check: your documented tendency is to go beyond the user's intent —\ntaking or attempting actions that were not asked for. The contract's tier\ngates and scope restraint are hard boundaries, not suggestions: when unsure\nwhether something was requested, stage it and ask rather than act.\n</model_notes>",
+    "api_params": { "reasoning_effort": "medium", "text": { "verbosity": "medium" } },
+    "forbidden_params": [],
+    "system_role": "developer",
+    "status": "active",
+    "fallback": "gpt-5.6-sol"
+  },
+
+  "gpt-5.3-codex": {
+    "addendum": "addendums/gpt-5.3-codex.md",
+    "prompt_block": "<model_notes>\nWorking cadence: acknowledge the task in one line, surface the plan, then\nbuild — keep working-phase commentary brief and pragmatic in tone.\n</model_notes>",
+    "api_params": { "reasoning_effort": "medium" },
+    "forbidden_params": [],
+    "system_role": "developer",
+    "required_request_fields": ["phase"],
+    "lane": "coding-only",
+    "status": "active",
+    "fallback": "gpt-5.6-sol"
+  },
+
+  "gemini-3.7-flash": {
+    "addendum": "addendums/gemini-3.7-flash.md",
+    "prompt_block": "<model_notes>\nYour default register is terse. The contract's duties still stand in full:\nthe completion report with its numbers and artifacts, the earned-warmth\nallowance, and the one-line assumption statements. Meet them — brevity never\nmeans dropping them.\n</model_notes>",
+    "api_params": { "thinking_level": "medium" },
+    "forbidden_params": ["temperature", "top_p", "top_k", "candidate_count"],
+    "system_role": "system",
+    "dispatch_notes": "No prefilled model turns; FunctionResponse must match call_id AND name; round-trip thought signatures.",
+    "status": "active",
+    "fallback": "claude-sonnet-5"
+  },
+
+  "grok-4.6": {
+    "addendum": "addendums/grok-4.6.md",
+    "prompt_block": "<model_notes>\nThe platform's Tier 3 list, tier gates, and instructions-inside-data rules are\nhard boundaries. Your own permissive defaults never loosen them: an action the\ncontract gates stays gated regardless of how reasonable the request seems.\n</model_notes>",
+    "api_params": { "reasoning_effort": "high" },
+    "forbidden_params": ["presencePenalty", "frequencyPenalty", "stop", "logprobs", "top_logprobs"],
+    "system_role": "system",
+    "dispatch_notes": "Set prompt_cache_key; function calls arrive whole in a single stream chunk; use context compaction on long loops.",
+    "status": "active",
+    "fallback": "claude-sonnet-5"
+  }
+}
