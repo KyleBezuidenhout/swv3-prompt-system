@@ -42,6 +42,8 @@ Where the operator manages connections: Settings → Connections
 TARGETS = {
     "fable5-workbench-system-prompt.md": "claude-fable-5.md",
     "gpt56-system-prompt.md": "gpt-5.6.md",
+    "opus5-system-prompt.md": "claude-opus-5.md",
+    "sonnet5-system-prompt.md": "claude-sonnet-5.md",
 }
 
 

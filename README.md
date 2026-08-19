@@ -52,5 +52,6 @@ This repo is designed to mount as the `prompts/` directory of the platform codeb
 - ⬜ Workspace + user layer templates
 - ⬜ Concrete `{PROHIBITED_ACTIONS}` list (draft default in [docs/proposals/compliance-pack.md](docs/proposals/compliance-pack.md))
 - ⬜ **Compliance Pack layer** — proposed, unratified: [docs/proposals/compliance-pack.md](docs/proposals/compliance-pack.md)
+- ✅ Credential/billing routing spec — platform keys metered against plan credits, BYOK overrides and bills the customer directly (implementation guide §7); pricing formula still open
 - ⬜ Tier-2 approval UI spec (product; must match the contract's approval semantics)
 - ⬜ Golden transcript suite (10–15 canonical operator scenarios — see docs/handoff.md §6)

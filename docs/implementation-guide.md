@@ -128,14 +128,32 @@ Subagents never get the full operator stack blindly. `buildSubagentPrompt(parent
 3. **Contradiction audit** — flag direct conflicts with the contract; the GPT family measurably degrades under contradictory instructions.
 4. **Size caps** — workspace ≤ ~2k tokens, user ≤ ~1k, memories ≤ ~500 rendered. Protects cache economics and attention; deeper customization belongs in workspace documents, not the prompt.
 
-## 7. Failure modes and defaults
+## 7. Model credentials and billing routing — platform keys vs. BYOK
+
+The frontier models ship plugged in and working out of the box. Two credential paths, one dispatcher:
+
+| Path | Whose key | Who pays | When |
+|---|---|---|---|
+| **Platform pool (default)** | Platform-owned vendor API keys (one pool per vendor) | The customer's **plan credits** — every call is metered per user/workspace and decremented against their included usage | Day one, zero setup |
+| **BYOK override** | The workspace's own vendor key, added in Settings → Connections | The customer's own vendor account, directly | Whenever they add one |
+
+Rules the dispatcher enforces:
+
+1. **Resolution order: workspace BYOK beats the platform pool**, per vendor. A workspace with its own OpenAI key but no Anthropic key uses BYOK for GPT calls and the platform pool for Claude calls.
+2. **Behavior never changes with the billing path.** Same contract, same addendum, same registry entry either way — the key source decides who pays, nothing else. Never route to a different model because of whose key it is.
+3. **Metering happens in both paths** (tokens, calls, per model) — for credit burn-down in the pool path, and for observability only in BYOK. The margin/pricing formula for pool usage (what plan credits cost the customer vs. what vendors charge us) is an open product decision — see docs/handoff.md §8.
+4. **Credit exhaustion is a hard, honest stop.** When plan credits run out: block new model calls and surface a clear operator-facing choice — add your own API key, or adjust the plan. **Never silently downgrade to a cheaper model** to stretch credits; a degraded agent the operator didn't choose is a trust break.
+5. **BYOK keys are secrets** — stored encrypted in the platform's secret store, injected only at dispatch, never in any prompt layer, never logged, never echoed (the contract's secrecy rules and the lint gate both apply). Rotation/revocation takes effect on the next request.
+6. **Rate limits differ by path**: pool keys share vendor rate limits across customers (the dispatcher needs per-workspace fair-use throttling); BYOK gets whatever the customer's own vendor tier allows.
+
+## 8. Failure modes and defaults
 
 - **Empty layers are valid** — the contract stands alone; new workspaces run with layers 3–4 empty and no memories.
 - **Refusal stop-reason:** §3d flow; fallback targets must be `active` (CI-enforced).
 - **Model unavailable:** route to `fallback` with full re-assembly — never silently degrade effort or strip the addendum.
 - **Registry/addendum drift:** CI is the guard; if it ever slips into prod, the addendum file wins and the registry is regenerated.
 
-## 8. Build order
+## 9. Build order
 
 1. `registry.json` + `buildPrompt` + `dispatch` (§2–3) — the core.
 2. DB tables + Settings UI for workspace/user prompts, with the lint gate (§6).

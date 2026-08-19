@@ -102,6 +102,7 @@ You asked for: incorporation into the system (§3), addendum structure (§4), pl
 **Still open (not written yet, should exist before launch):**
 - The **workspace-layer template** and **user-layer template** (the personalization scaffolds customers fill in).
 - The concrete **{PROHIBITED_ACTIONS} list** — a product/legal decision; draft default in `docs/proposals/compliance-pack.md`.
+- The **pool-usage pricing formula** — what plan credits cost customers vs. vendor list prices (billing routing itself is specced in the implementation guide §7).
 - The **Compliance Pack layer** (legal-exposure rules: binding statements, outbound marketing law, advice boundaries, AI disclosure) — proposed in `docs/proposals/compliance-pack.md`, awaiting founder ratification and counsel review.
 - The **Tier-2 approval UI spec** — the contract defines approval semantics; the product needs the matching one-tap surface.
 - A **Gemini 3.1 Pro addendum** if the router will offer it (derive from the same sources as the 3.7 Flash file).

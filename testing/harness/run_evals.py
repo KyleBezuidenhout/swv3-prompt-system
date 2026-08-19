@@ -34,11 +34,30 @@ JUDGE_MODEL = "claude-opus-5"
 
 TARGETS = {
     "fable": {
+        "vendor": "anthropic",
         "model": "claude-fable-5",
         "assembly": TESTING_DIR / "fable5-workbench-system-prompt.md",
     },
+    "opus": {
+        "vendor": "anthropic",
+        "model": "claude-opus-5",
+        "assembly": TESTING_DIR / "opus5-system-prompt.md",
+        "output_config": {"effort": "high"},
+    },
+    "sonnet": {
+        "vendor": "anthropic",
+        "model": "claude-sonnet-5",
+        "assembly": TESTING_DIR / "sonnet5-system-prompt.md",
+        "output_config": {"effort": "medium"},   # per addendums/claude-sonnet-5.md
+    },
     "gpt": {
+        "vendor": "openai",
         "model": "gpt-5.6-sol",
+        "assembly": TESTING_DIR / "gpt56-system-prompt.md",
+    },
+    "gpt-terra": {
+        "vendor": "openai",
+        "model": "gpt-5.6-terra",
         "assembly": TESTING_DIR / "gpt56-system-prompt.md",
     },
 }
@@ -64,17 +83,20 @@ def load_system_prompt(target: str) -> str:
     return text
 
 
-def run_suite_fable(system_prompt: str, scenarios: list) -> list:
+def run_suite_anthropic(target: dict, system_prompt: str, scenarios: list) -> list:
     client = anthropic.Anthropic()
     messages, results = [], []
     system_blocks = [{"type": "text", "text": system_prompt,
                       "cache_control": {"type": "ephemeral"}}]
+    extra = {}
+    if target.get("output_config"):
+        extra["output_config"] = target["output_config"]
     for sc in scenarios:
         print(f"  [{sc['id']}] {sc['name']} ...", flush=True)
         messages.append({"role": "user", "content": sc["user"]})
         resp = client.messages.create(
-            model=TARGETS["fable"]["model"], max_tokens=16000,
-            system=system_blocks, messages=messages,
+            model=target["model"], max_tokens=16000,
+            system=system_blocks, messages=messages, **extra,
         )
         if resp.stop_reason == "refusal":
             reply = "[MODEL REFUSAL — safety classifiers declined this turn]"
@@ -86,7 +108,7 @@ def run_suite_fable(system_prompt: str, scenarios: list) -> list:
     return results
 
 
-def run_suite_gpt(system_prompt: str, scenarios: list) -> list:
+def run_suite_openai(target: dict, system_prompt: str, scenarios: list) -> list:
     from openai import OpenAI
     client = OpenAI()
     results, prev_id = [], None
@@ -98,7 +120,7 @@ def run_suite_gpt(system_prompt: str, scenarios: list) -> list:
         else:
             inp = [{"role": "user", "content": sc["user"]}]
         resp = client.responses.create(
-            model=TARGETS["gpt"]["model"],
+            model=target["model"],
             input=inp,
             previous_response_id=prev_id,     # persists reasoning across turns
             reasoning={"effort": "medium"},   # per addendums/gpt-5.6.md
@@ -176,8 +198,9 @@ def main() -> int:
     judge_client = anthropic.Anthropic()
     system_prompt = load_system_prompt(args.target)
     scenarios = json.loads(SCENARIOS_FILE.read_text())["scenarios"]
-    target_model = TARGETS[args.target]["model"]
-    runner = run_suite_fable if args.target == "fable" else run_suite_gpt
+    target = TARGETS[args.target]
+    target_model = target["model"]
+    runner = run_suite_anthropic if target["vendor"] == "anthropic" else run_suite_openai
 
     stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     out_dir = RESULTS_DIR / f"run-{stamp}-{args.target}"
@@ -186,7 +209,7 @@ def main() -> int:
     all_runs = []
     for run_idx in range(1, args.runs + 1):
         print(f"Run {run_idx}/{args.runs} — target {target_model}, judge {JUDGE_MODEL}")
-        results = runner(system_prompt, scenarios)
+        results = runner(target, system_prompt, scenarios)
         for sc, res in zip(scenarios, results):
             res["judgment"] = judge_turn(judge_client, sc, res["reply"])
             print(f"    [{res['id']}] {res['judgment']['grade']}: {res['judgment']['reason']}")
