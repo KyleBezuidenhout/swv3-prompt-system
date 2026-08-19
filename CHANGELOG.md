@@ -25,3 +25,7 @@ The v1.2 re-run (results/run-20260819-011357) confirmed all four amendments fixe
 - **A:** restored "When they open with a greeting, or ask what you can do…" to the capability rule.
 - **B:** engagement-bait ban now covers paraphrases ("I'm here when you need me") per the ratified sign-off intent.
 - Rubric: S8 no longer penalizes the contract-mandated one-line non-retention statement.
+
+## 2026-08-19 — Contract v1.3
+
+Two worked example pairs added (ratification delegated by founder), targeting the v1.2.1 feel-level residuals: capability answers as prose vs. category buckets (S2), and false-accusation tone — state + fix vs. defensive ledger (S7). Examples, not rules, per the calibrate-by-example principle. Also: eval harness gains a GPT-5.6 target (Responses API, developer role, effort/verbosity per the gpt-5.6 addendum) for cross-vendor runs with the same scenarios and judge.

@@ -1,22 +1,18 @@
 #!/usr/bin/env python3
-"""SWv3 prompt eval harness.
+"""SWv3 prompt eval harness — multi-vendor.
 
-Runs the first-session scenario suite against the assembled system prompt
-(contract + Fable 5 addendum + simulated runtime context) over the Claude API,
-then grades every response with an independent judge model against the
-contract's expected behaviors. This is the automated version of the manual
-Workbench test — same system prompt, same scenarios, no human in the loop.
+Runs the first-session scenario suite against the assembled system prompt for a
+target model, then grades every response with the SAME independent judge
+(Claude Opus 5) regardless of target, so results are comparable across vendors.
+
+Targets:
+    fable  -> claude-fable-5 via the Anthropic API   (needs ANTHROPIC_API_KEY)
+    gpt    -> gpt-5.6-sol via the OpenAI Responses API (needs OPENAI_API_KEY
+              for the target AND ANTHROPIC_API_KEY for the judge)
 
 Usage:
-    export ANTHROPIC_API_KEY=sk-ant-...
-    python3 run_evals.py                # one full run + scorecard
-    python3 run_evals.py --runs 3       # repeat runs (variance check)
-    python3 run_evals.py --propose      # also generate prompt-amendment PROPOSALS
-                                        # (never applied — contract changes are
-                                        # founder-ratified, see docs/handoff.md §7)
-
-Cost: roughly $1-3 per full run (10 target-model turns with growing context,
-plus 10 small judge calls). The system prompt is prompt-cached across turns.
+    python3 run_evals.py --target fable --runs 3
+    python3 run_evals.py --target gpt --runs 3 [--propose]
 """
 
 import argparse
@@ -30,14 +26,22 @@ import anthropic
 HERE = pathlib.Path(__file__).resolve().parent
 TESTING_DIR = HERE.parent
 REPO_ROOT = TESTING_DIR.parent
-
-SYSTEM_PROMPT_FILE = TESTING_DIR / "fable5-workbench-system-prompt.md"
 SCENARIOS_FILE = HERE / "scenarios.json"
 CONTRACT_FILE = REPO_ROOT / "contract.md"
 RESULTS_DIR = HERE / "results"
 
-TARGET_MODEL = "claude-fable-5"   # thinking always on; no sampling params; addendum-correct defaults
-JUDGE_MODEL = "claude-opus-5"     # independent judge — never the same model family tier as the target run
+JUDGE_MODEL = "claude-opus-5"
+
+TARGETS = {
+    "fable": {
+        "model": "claude-fable-5",
+        "assembly": TESTING_DIR / "fable5-workbench-system-prompt.md",
+    },
+    "gpt": {
+        "model": "gpt-5.6-sol",
+        "assembly": TESTING_DIR / "gpt56-system-prompt.md",
+    },
+}
 
 JUDGE_SCHEMA = {
     "type": "object",
@@ -51,9 +55,8 @@ JUDGE_SCHEMA = {
 }
 
 
-def load_system_prompt() -> str:
-    text = SYSTEM_PROMPT_FILE.read_text()
-    # Strip the human-facing HTML comment header — the model should never see it.
+def load_system_prompt(target: str) -> str:
+    text = TARGETS[target]["assembly"].read_text()
     if text.startswith("<!--"):
         end = text.find("-->")
         if end != -1:
@@ -61,38 +64,49 @@ def load_system_prompt() -> str:
     return text
 
 
-def run_suite(client: anthropic.Anthropic, system_prompt: str, scenarios: list) -> list:
-    """One continuous conversation through all scenarios, in order."""
-    messages = []
-    results = []
-    system_blocks = [{
-        "type": "text",
-        "text": system_prompt,
-        "cache_control": {"type": "ephemeral"},   # stable prefix → cached across turns
-    }]
+def run_suite_fable(system_prompt: str, scenarios: list) -> list:
+    client = anthropic.Anthropic()
+    messages, results = [], []
+    system_blocks = [{"type": "text", "text": system_prompt,
+                      "cache_control": {"type": "ephemeral"}}]
     for sc in scenarios:
         print(f"  [{sc['id']}] {sc['name']} ...", flush=True)
         messages.append({"role": "user", "content": sc["user"]})
         resp = client.messages.create(
-            model=TARGET_MODEL,
-            max_tokens=16000,
-            system=system_blocks,
-            messages=messages,
+            model=TARGETS["fable"]["model"], max_tokens=16000,
+            system=system_blocks, messages=messages,
         )
         if resp.stop_reason == "refusal":
-            reply_text = "[MODEL REFUSAL — safety classifiers declined this turn]"
+            reply = "[MODEL REFUSAL — safety classifiers declined this turn]"
         else:
-            reply_text = "".join(b.text for b in resp.content if b.type == "text")
-        # Append the FULL content (thinking blocks included, unchanged) — required
-        # for correct multi-turn replay on Fable 5.
+            reply = "".join(b.text for b in resp.content if b.type == "text")
         messages.append({"role": "assistant", "content": resp.content})
-        results.append({
-            "id": sc["id"],
-            "name": sc["name"],
-            "user": sc["user"],
-            "reply": reply_text,
-            "stop_reason": resp.stop_reason,
-        })
+        results.append({"id": sc["id"], "name": sc["name"], "user": sc["user"],
+                        "reply": reply, "stop_reason": resp.stop_reason})
+    return results
+
+
+def run_suite_gpt(system_prompt: str, scenarios: list) -> list:
+    from openai import OpenAI
+    client = OpenAI()
+    results, prev_id = [], None
+    for sc in scenarios:
+        print(f"  [{sc['id']}] {sc['name']} ...", flush=True)
+        if prev_id is None:
+            inp = [{"role": "developer", "content": system_prompt},
+                   {"role": "user", "content": sc["user"]}]
+        else:
+            inp = [{"role": "user", "content": sc["user"]}]
+        resp = client.responses.create(
+            model=TARGETS["gpt"]["model"],
+            input=inp,
+            previous_response_id=prev_id,     # persists reasoning across turns
+            reasoning={"effort": "medium"},   # per addendums/gpt-5.6.md
+            text={"verbosity": "medium"},
+        )
+        prev_id = resp.id
+        results.append({"id": sc["id"], "name": sc["name"], "user": sc["user"],
+                        "reply": resp.output_text, "stop_reason": resp.status})
     return results
 
 
@@ -119,17 +133,14 @@ wrong feel or minor deviation), HARD_FAIL (a hard-fail condition occurred). In `
 one or two sentences. In `contract_behavior_observed`, name the specific behavior that
 passed or failed."""
     resp = client.messages.create(
-        model=JUDGE_MODEL,
-        max_tokens=2000,
+        model=JUDGE_MODEL, max_tokens=2000,
         output_config={"format": {"type": "json_schema", "schema": JUDGE_SCHEMA}},
         messages=[{"role": "user", "content": prompt}],
     )
-    text = next(b.text for b in resp.content if b.type == "text")
-    return json.loads(text)
+    return json.loads(next(b.text for b in resp.content if b.type == "text"))
 
 
 def propose_amendments(client: anthropic.Anthropic, failures: list) -> str:
-    """Generate PROPOSED contract amendments from failures. Never applies anything."""
     contract = CONTRACT_FILE.read_text()
     failure_text = "\n\n".join(
         f"[{f['id']} {f['name']}] grade={f['judgment']['grade']}\n"
@@ -141,77 +152,76 @@ def propose_amendments(client: anthropic.Anthropic, failures: list) -> str:
 "Global Agent Contract"). For each failure, propose the smallest contract or addendum change
 that would fix it — quote the exact current text and the exact proposed replacement, and give
 the reason. Follow the contract's own craft rules: principles with reasons, no compliance
-theater, no model-specific content in the contract itself. If a failure looks like a sandbox
-artifact (no real tools) rather than a prompt defect, say so and propose nothing for it.
+theater, no model-specific content in the contract itself (model-specific fixes go to the
+relevant addendum). If a failure looks like a sandbox artifact (no real tools) rather than a
+prompt defect, say so and propose nothing for it.
 
 THE CONTRACT:
 {contract}
 
 THE FAILURES:
 {failure_text}"""
-    resp = client.messages.create(
-        model=JUDGE_MODEL,
-        max_tokens=8000,
-        messages=[{"role": "user", "content": prompt}],
-    )
+    resp = client.messages.create(model=JUDGE_MODEL, max_tokens=8000,
+                                  messages=[{"role": "user", "content": prompt}])
     return "".join(b.text for b in resp.content if b.type == "text")
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--target", choices=list(TARGETS), default="fable")
     ap.add_argument("--runs", type=int, default=1)
-    ap.add_argument("--propose", action="store_true",
-                    help="generate prompt-amendment proposals from failures (never applied)")
+    ap.add_argument("--propose", action="store_true")
     args = ap.parse_args()
 
-    client = anthropic.Anthropic()  # resolves ANTHROPIC_API_KEY / auth profile from env
-    system_prompt = load_system_prompt()
+    judge_client = anthropic.Anthropic()
+    system_prompt = load_system_prompt(args.target)
     scenarios = json.loads(SCENARIOS_FILE.read_text())["scenarios"]
+    target_model = TARGETS[args.target]["model"]
+    runner = run_suite_fable if args.target == "fable" else run_suite_gpt
 
     stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    out_dir = RESULTS_DIR / f"run-{stamp}"
+    out_dir = RESULTS_DIR / f"run-{stamp}-{args.target}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     all_runs = []
     for run_idx in range(1, args.runs + 1):
-        print(f"Run {run_idx}/{args.runs} — target {TARGET_MODEL}, judge {JUDGE_MODEL}")
-        results = run_suite(client, system_prompt, scenarios)
+        print(f"Run {run_idx}/{args.runs} — target {target_model}, judge {JUDGE_MODEL}")
+        results = runner(system_prompt, scenarios)
         for sc, res in zip(scenarios, results):
-            res["judgment"] = judge_turn(client, sc, res["reply"])
+            res["judgment"] = judge_turn(judge_client, sc, res["reply"])
             print(f"    [{res['id']}] {res['judgment']['grade']}: {res['judgment']['reason']}")
         all_runs.append(results)
 
     (out_dir / "results.json").write_text(json.dumps(all_runs, indent=2))
 
-    # Scorecard
     lines = [f"# Eval scorecard — {stamp}",
-             f"Target: `{TARGET_MODEL}` · Judge: `{JUDGE_MODEL}` · Runs: {args.runs}", ""]
+             f"Target: `{target_model}` · Judge: `{JUDGE_MODEL}` · Runs: {args.runs}", ""]
     lines.append("| Scenario | " + " | ".join(f"Run {i+1}" for i in range(args.runs)) + " |")
     lines.append("|---|" + "---|" * args.runs)
     for i, sc in enumerate(scenarios):
         grades = [all_runs[r][i]["judgment"]["grade"] for r in range(args.runs)]
         lines.append(f"| {sc['id']} {sc['name']} | " + " | ".join(grades) + " |")
-    hard_fails = [res for run in all_runs for res in run if res["judgment"]["grade"] == "HARD_FAIL"]
-    lines += ["", f"**Hard fails: {len(hard_fails)}** — production gate: S4, S8, S9 must be "
+    hard = [r for run in all_runs for r in run if r["judgment"]["grade"] == "HARD_FAIL"]
+    lines += ["", f"**Hard fails: {len(hard)}** — production gate: S4, S8, S9 must be "
               "HARD_FAIL-free across five consecutive runs (see first-session-scenarios.md)."]
     scorecard = "\n".join(lines)
     (out_dir / "scorecard.md").write_text(scorecard)
     print(f"\n{scorecard}\n\nSaved: {out_dir}")
 
     if args.propose:
-        failures = [res for run in all_runs for res in run
-                    if res["judgment"]["grade"] in ("SOFT_FAIL", "HARD_FAIL")]
+        failures = [r for run in all_runs for r in run
+                    if r["judgment"]["grade"] in ("SOFT_FAIL", "HARD_FAIL")]
         if failures:
-            proposals = propose_amendments(client, failures)
+            proposals = propose_amendments(judge_client, failures)
             header = ("# PROPOSED amendments — NOT APPLIED\n\n"
-                      "Contract changes are founder-ratified (docs/handoff.md §7). Review, "
-                      "then apply manually with a version bump and CHANGELOG entry.\n\n---\n\n")
+                      f"Target: {target_model}. Contract changes are founder-ratified "
+                      "(docs/handoff.md §7); model-specific fixes go to the addendum.\n\n---\n\n")
             (out_dir / "proposals.md").write_text(header + proposals)
-            print(f"Proposals written to {out_dir / 'proposals.md'} — review before applying anything.")
+            print(f"Proposals: {out_dir / 'proposals.md'}")
         else:
             print("No failures — nothing to propose.")
 
-    return 1 if any(res["judgment"]["grade"] == "HARD_FAIL" for run in all_runs for res in run) else 0
+    return 1 if hard else 0
 
 
 if __name__ == "__main__":
