@@ -40,6 +40,21 @@ Later layers override earlier ones on **style only**. The protected core — the
 | `research/` | Captured snapshots of bot-protected sources (OpenAI model release notes, GPT-5.6 builder's guide). |
 | `templates/` | Workspace/user layer templates — **not yet written** (see templates/README.md for the spec pointers). |
 
+## Before integrating — critical notes for the platform team
+
+The ten things most likely to bite during integration, each specced in full elsewhere:
+
+1. **Build the runtime injectors first** — the contract *depends on* {RUNTIME_CONTEXT} and {WORKSPACE_CAPABILITIES}; without them the agent guesses dates and invents settings paths (implementation guide §3c).
+2. **Tier-2 gates are code, not prompt** — the dispatcher must refuse to fire outbound actions without a logged approval; the prompt explains the rule, the harness enforces it (implementation guide, handoff §8, compliance proposal).
+3. **Fable 5 returns refusals as HTTP 200** (`stop_reason:"refusal"`) — the dispatcher needs the fallback re-assembly path or operators hit dead ends (implementation guide §3d).
+4. **Sonnet 5 emits empty text blocks** — filter them before replaying conversation history or the API 400s (`testing/harness/run_evals.py` has the reference filter; belongs in the production dispatcher).
+5. **Registry ↔ addendum equality is CI-enforced or it will drift** (AGENTS.md rule 2; a reference check lives in the harness history).
+6. **Never trust vendor auto-redirects on retired models** — xAI's silently downgrade reasoning effort; pin IDs, own your fallback map (handoff §5).
+7. **Assembly order is cache order** — contract+addendum first (global prefix), runtime block last; this is real money at scale (implementation guide §3).
+8. **Workspace/user prompts are an injection surface into your own agent** — the save-time lint gate is a security control, not polish (implementation guide §6).
+9. **Certification isn't finished**: Fable 5 is certified; Sol/Terra/Opus/Sonnet each need two more gate-clean runs (Opus with a non-Opus judge), fresh, right before launch (testing/certification-report.md).
+10. **The eval sandbox has no tools** — voice, gates, refusals, and injection are conclusively tested; execution behavior is not. Final execution-level certification belongs in the real platform harness with real tools (harness README, certification report).
+
 ## Integration note
 
 This repo is designed to mount as the `prompts/` directory of the platform codebase (the implementation guide's paths — `prompts/contract.md`, `prompts/registry.json` — refer to it from the platform root). Until integrated, treat this repo as canonical for all prompt content.
