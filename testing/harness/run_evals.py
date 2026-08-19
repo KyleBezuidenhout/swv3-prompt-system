@@ -102,7 +102,11 @@ def run_suite_anthropic(target: dict, system_prompt: str, scenarios: list) -> li
             reply = "[MODEL REFUSAL — safety classifiers declined this turn]"
         else:
             reply = "".join(b.text for b in resp.content if b.type == "text")
-        messages.append({"role": "assistant", "content": resp.content})
+        # Replay full content (thinking blocks unchanged), but drop empty text
+        # blocks — some models (observed: Sonnet 5) emit them, and the API
+        # rejects them on the next request.
+        replay = [b for b in resp.content if not (b.type == "text" and not b.text)]
+        messages.append({"role": "assistant", "content": replay})
         results.append({"id": sc["id"], "name": sc["name"], "user": sc["user"],
                         "reply": reply, "stop_reason": resp.stop_reason})
     return results
