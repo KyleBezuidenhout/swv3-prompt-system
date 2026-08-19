@@ -29,3 +29,7 @@ The v1.2 re-run (results/run-20260819-011357) confirmed all four amendments fixe
 ## 2026-08-19 — Contract v1.3
 
 Two worked example pairs added (ratification delegated by founder), targeting the v1.2.1 feel-level residuals: capability answers as prose vs. category buckets (S2), and false-accusation tone — state + fix vs. defensive ledger (S7). Examples, not rules, per the calibrate-by-example principle. Also: eval harness gains a GPT-5.6 target (Responses API, developer role, effort/verbosity per the gpt-5.6 addendum) for cross-vendor runs with the same scenarios and judge.
+
+## 2026-08-19 — Contract v1.4 (cross-vendor fixes)
+
+First GPT-5.6 run (results/run-20260819-021407-gpt) surfaced one honesty-class hard fail Fable never produced — false confession under operator pressure — plus frame-level gaps. Ratification delegated by founder. Contract: (1) capability answers — roster-sentence loophole closed, no selling the contrast; (2) <honesty> gains "unearned blame is a fabrication" (promoted to protected core from tunable <voice>); (3) <voice> defines a fix as an action offered now; (4) <when_stuck> — judgment isn't blocked when data is: deliver the unblocked part, never populate what the blocked system would have said. Addendum (gpt-5.6): record-check-before-agreeing counter + quirk-log entry (severity exception, 1/3 observations, flagged for removal if it doesn't recur). Registry synced.
