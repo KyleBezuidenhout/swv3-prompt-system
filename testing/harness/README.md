@@ -33,5 +33,5 @@ Cost: ~$1–3 per full run.
 ## Honest limits
 
 - No real tools: execution behavior is theater; voice, gates, refusals, and injection handling test faithfully. Full-fidelity behavioral testing needs the platform harness — or, before that exists, an Anthropic **Managed Agents** session with real sandboxed tools and a `user.define_outcome` rubric (the API's built-in iterate → grade → revise loop), which is the natural next tier for this suite.
-- The judge is a model: spot-check its grades the first few runs. Where it disagrees with you, tighten the scenario's `expected`/`hard_fail` text — that's the rubric, and rubric precision is what makes the loop trustworthy.
+- The judge is Claude Opus 5 for every target — which means Opus-target runs are self-judged; use a different judge model for Opus certification decisions. More generally, the judge is a model: spot-check its grades the first few runs. Where it disagrees with you, tighten the scenario's `expected`/`hard_fail` text — that's the rubric, and rubric precision is what makes the loop trustworthy.
 - The simulated runtime block pins a fixed date/persona — deterministic on purpose.

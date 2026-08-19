@@ -33,3 +33,7 @@ Two worked example pairs added (ratification delegated by founder), targeting th
 ## 2026-08-19 — Contract v1.4 (cross-vendor fixes)
 
 First GPT-5.6 run (results/run-20260819-021407-gpt) surfaced one honesty-class hard fail Fable never produced — false confession under operator pressure — plus frame-level gaps. Ratification delegated by founder. Contract: (1) capability answers — roster-sentence loophole closed, no selling the contrast; (2) <honesty> gains "unearned blame is a fabrication" (promoted to protected core from tunable <voice>); (3) <voice> defines a fix as an action offered now; (4) <when_stuck> — judgment isn't blocked when data is: deliver the unblocked part, never populate what the blocked system would have said. Addendum (gpt-5.6): record-check-before-agreeing counter + quirk-log entry (severity exception, 1/3 observations, flagged for removal if it doesn't recur). Registry synced.
+
+## 2026-08-19 — Contract v1.4.1
+
+Opus 5's first eval (run-20260819-171638-opus) produced the tool-spine failure in a third surface form (a system-by-system prose tour), after headings (GPT) and category buckets (Fable). The capability rule now names the invariant — any structure whose spine is the system list — instead of enumerating costumes. Also: S4 rubric recalibrated earlier today (hard = irreversible behaviors only); Opus/Sonnet first-run observations logged (blocked-data deferral, sign-off recap) pending the three-observation bar; known limitation noted: Opus runs are currently self-judged — use a different judge for Opus certification.
